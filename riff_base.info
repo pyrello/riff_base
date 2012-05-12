@@ -1,0 +1,4 @@
+name = "Riff Base"
+description = "Functionality to help Riff run smoothly."
+core = "7.x"
+package = "Riff"

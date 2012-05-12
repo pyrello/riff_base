@@ -1,0 +1,41 @@
+<?php
+
+function riff_base_menu() {
+	$items = array();
+
+	$items['riff'] = array(
+		'page callback' => 'riff_front',
+	);
+
+	return $items;
+}
+
+function riff_theme() {
+	return array(
+		'riff_base_front' => array(
+			'variables' => array(),
+		),
+	);
+}
+
+function riff_base_front() {
+	return theme('riff_base_front');
+}
+
+function theme_riff_base_front($variables) {
+	global $user;
+	if ($user->uid == 0) {
+		drupal_set_title(t('This website is being set up'));
+	}
+	$output = '<div class="front-instructions">
+<h1 class="title">Welcome to your new Band Bump website!</h1>
+
+This is your homepage. Until you add some content to your website, you will see this message. Visitors will see a message that the site is being set up and will be ready soon.
+
+<strong>Get Started</strong>
+
+So now you have a website. Exciting! Now you need a reason for people to come here.
+
+<a href="[[node/add/song]]">Add a Song!</a>';
+	return $output;
+}
