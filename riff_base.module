@@ -4,7 +4,10 @@ function riff_base_menu() {
 	$items = array();
 
 	$items['riff'] = array(
-		'page callback' => 'riff_front',
+		'title' => 'This website is being set up',
+		'page callback' => 'riff_base_front',
+		'access arguments' => array('access content'),
+		'type' => MENU_SUGGESTED_ITEM,
 	);
 
 	return $items;
@@ -24,18 +27,17 @@ function riff_base_front() {
 
 function theme_riff_base_front($variables) {
 	global $user;
-	if ($user->uid == 0) {
-		drupal_set_title(t('This website is being set up'));
+	if ($user->uid != 0) {
+		drupal_set_title(t('Welcome to your new Riff website'));
+		$output = '<p>This is your homepage. Until you add some content to your website, you will see this message. Visitors will see a message that the site is being set up and will be ready soon.</p>';
+		$output .= '<h3><strong>Get Started</strong></h3>';
+		$output .= '<p>So now you have a website. Exciting! Now you need a reason for people to come here.</p>';
+		$output .= l('Add a Song!', 'node/add/song', array('attributes' => array('class' => 'front-action-button')));
+		$output = '<div class="front-instructions">' . $output . '</div>';
+	} else {
+		$output = '<p>This website is in the process of being set up. We should have something for you to look at soon!</p>';
+		$output = '<div class="front-construction">' . $output . '</div>';
+
 	}
-	$output = '<div class="front-instructions">
-<h1 class="title">Welcome to your new Band Bump website!</h1>
-
-This is your homepage. Until you add some content to your website, you will see this message. Visitors will see a message that the site is being set up and will be ready soon.
-
-<strong>Get Started</strong>
-
-So now you have a website. Exciting! Now you need a reason for people to come here.
-
-<a href="[[node/add/song]]">Add a Song!</a>';
 	return $output;
 }
