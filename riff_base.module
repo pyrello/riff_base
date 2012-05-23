@@ -4,7 +4,7 @@ function riff_base_menu() {
   $items = array();
 
   $items['riff'] = array(
-    'title' => 'This website is being set up',
+    //'title' => 'This website is being set up',
     'page callback' => 'riff_base_front',
     'access arguments' => array('access content'),
     'type' => MENU_SUGGESTED_ITEM,
@@ -13,31 +13,132 @@ function riff_base_menu() {
   return $items;
 }
 
+function riff_base_permission() {
+	return array(
+		'view owner front page' => array(
+			'title' => t('View owner front page'),
+			'description' => t('View the owner version of the front page'),
+		),
+	);
+}
+
 function riff_theme() {
   return array(
     'riff_base_front' => array(
       'variables' => array(),
     ),
+    'riff_base_front_default' => array(
+      'variables' => array(),
+    ),
+		'riff_base_front_owner' => array(
+			'variables' => array(),
+		),
   );
 }
 
 function riff_base_front() {
-  return theme('riff_base_front');
+	// Check if we have music content types set up
+	if (module_exists('riff_music_content')) {
+		if ($output = riff_base_front_music()) {
+			return $output;
+		}
+	}
+	if (user_access('view owner front page')) {
+		return theme('riff_base_front_owner');
+	}
+	else {
+		return theme('riff_base_front_default');
+	}
 }
 
-function theme_riff_base_front($variables) {
-  global $user;
-  if ($user->uid != 0) {
-    drupal_set_title(t('Welcome to your new Riff website'));
-    $output = '<p>This is your homepage. Until you add some content to your website, you will see this message. Visitors will see a message that the site is being set up and will be ready soon.</p>';
-    $output .= '<h3><strong>Get Started</strong></h3>';
-    $output .= '<p>So now you have a website. Exciting! Now you need a reason for people to come here.</p>';
-    $output .= l('Add a Song!', 'node/add/song', array('attributes' => array('class' => 'front-action-button')));
-    $output = '<div class="front-instructions">' . $output . '</div>';
-  } else {
+function theme_riff_base_front_default($variables) {
+	
+  $select = db_select('node', 'n')
+    ->fields('n', array('nid', 'sticky', 'created'))
+    ->condition('promote', 1)
+    ->condition('status', 1)
+    ->orderBy('sticky', 'DESC')
+    ->orderBy('created', 'DESC')
+    ->extend('PagerDefault')
+    ->limit(variable_get('default_nodes_main', 10))
+    ->addTag('node_access');
+
+  $nids = $select->execute()->fetchCol();
+
+  if (!empty($nids)) {
+    $nodes = node_load_multiple($nids);
+    $build = node_view_multiple($nodes);
+
+    // 'rss.xml' is a path, not a file, registered in node_menu().
+    drupal_add_feed('rss.xml', variable_get('site_name', 'Drupal') . ' ' . t('RSS'));
+    $build['pager'] = array(
+      '#theme' => 'pager',
+      '#weight' => 5,
+    );
+    drupal_set_title('');
+  }
+	else {
+    drupal_set_title(t('The @site-name is still being set up', array('@site-name' => variable_get('site_name', 'Drupal'))), PASS_THROUGH);
+
     $output = '<p>This website is in the process of being set up. We should have something for you to look at soon!</p>';
     $output = '<div class="front-construction">' . $output . '</div>';
 
+    $build['default_message'] = array(
+      '#markup' => $output,
+      '#prefix' => '<div id="first-time">',
+      '#suffix' => '</div>',
+    );
   }
+	return $build;
+}
+
+function theme_riff_base_front_owner($variables) {
+	drupal_set_title(t('Welcome to your new Riff website'));
+	$output = '<p>This is your homepage. Until you add some content to your website, you will see this message. Visitors will see a message that the site is being set up and will be ready soon.</p>';
+	$output .= '<h3><strong>Get Started</strong></h3>';
+	$output .= '<p>So now you have a website. Exciting! Now you need a reason for people to come here.</p>';
+	$output .= l('Add a Song!', 'node/add/song', array('attributes' => array('class' => 'front-action-button')));
+	$output = '<div class="front-instructions">' . $output . '</div>';
   return $output;
+}
+
+function riff_base_front_music() {
+	$build = FALSE;
+	$select = db_select('node', 'n')
+    ->fields('n', array('nid'))
+    ->condition('promote', 1)
+    ->condition('status', 1)
+		->condition('type', 'album')
+    //->orderBy('created', 'DESC')
+    ->extend('PagerDefault')
+    ->limit(1)
+    ->addTag('node_access');
+	
+	$nid = $select->execute()->fetchField();
+  if (!empty($nid)) {
+		$node = node_load($nid);
+    $build = node_view($node, 'full');
+	}
+	else {
+		$select = db_select('node', 'n')
+			->fields('n', array('nid'))
+			->condition('promote', 1)
+			->condition('status', 1)
+			->condition('type', 'song')
+			//->orderBy('created', 'DESC')
+			->extend('PagerDefault')
+			->limit(1)
+			->addTag('node_access');
+	
+		$nid = $select->execute()->fetchField();
+		if (!empty($nid)) {
+			$node = node_load($nid);
+			$build = node_view($node, 'full');
+		}
+	}
+	return $build;
+}
+
+function riff_base_preprocess_page($variables) {
+	drupal_add_css(drupal_get_path('module', 'riff_base') . '/css/riff.css');
 }
