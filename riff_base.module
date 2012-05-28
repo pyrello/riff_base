@@ -22,18 +22,31 @@ function riff_base_permission() {
 	);
 }
 
-function riff_theme() {
-  return array(
+function riff_base_theme($existing, $type, $theme, $path) {
+  $themes = array(
     'riff_base_front' => array(
       'variables' => array(),
     ),
     'riff_base_front_default' => array(
       'variables' => array(),
     ),
-		'riff_base_front_owner' => array(
-			'variables' => array(),
-		),
+    'riff_base_front_owner' => array(
+      'variables' => array(),
+    ),
   );
+  if (module_exists('riff_music_content')) {
+    $themes['album_node_form'] = array(
+      'template' => 'album-node-form',
+      'path' => drupal_get_path('module', 'riff_base') . '/templates',
+      'render element' => 'form',
+    );
+    $themes['song_node_form'] = array(
+      'template' => 'song-node-form',
+      'path' => drupal_get_path('module', 'riff_base') . '/templates',
+      'render element' => 'form',
+    );
+  }
+  return $themes;
 }
 
 function riff_base_front() {
@@ -141,4 +154,48 @@ function riff_base_front_music() {
 
 function riff_base_preprocess_page($variables) {
 	drupal_add_css(drupal_get_path('module', 'riff_base') . '/css/riff.css');
+}
+
+/**
+ * Preprocessor for theme('album_node_form').
+ */
+function riff_base_preprocess_album_node_form(&$variables) {
+  // nodeformcols is an alternative for this solution.
+  if (!module_exists('nodeformcols')) {
+    $variables['right'] = array();
+
+    $variables['right'][] = $variables['form']['field_album_image'];
+    hide($variables['form']['field_album_image']);
+
+    // Extract the form buttons, and put them in independent variable.
+    $variables['buttons'] = $variables['form']['actions'];
+    hide($variables['form']['actions']);
+  }
+}
+
+/**
+ * Preprocessor for theme('song_node_form').
+ */
+function riff_base_preprocess_song_node_form(&$variables) {
+  // nodeformcols is an alternative for this solution.
+  if (!module_exists('nodeformcols')) {
+    $variables['right'] = array();
+
+    $variables['right'][] = $variables['form']['field_song_image'];
+    hide($variables['form']['field_song_image']);
+
+    // Extract the form buttons, and put them in independent variable.
+    $variables['buttons'] = $variables['form']['actions'];
+    hide($variables['form']['actions']);
+  }
+}
+
+function riff_base_form_alter(&$form, &$form_state, $form_id) {
+  if (isset($form['#node_edit_form']) && $form['#node_edit_form']) {
+    $form['path']['#group'] = '';
+    $form['path']['#title'] = '';
+    $form['path']['#collapsible'] = FALSE;
+    $form['path']['#collapsed'] = FALSE;
+		$form['path']['alias']['#title'] = t('Link:');
+  }
 }

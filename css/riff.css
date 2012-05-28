@@ -1,2 +1,7 @@
 div.messages { border-radius: 6px; margin: 0 0 15px; }
 div.status { background-color: #356A01; color: #fff; border: #499201 solid 1px; }
+.node-form .right { float: right;
+margin-left: 20px;
+padding: 19px;
+background-color: #EEE;
+border: 1px solid #CCC; }
