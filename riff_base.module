@@ -33,6 +33,9 @@ function riff_base_theme($existing, $type, $theme, $path) {
     'riff_base_front_owner' => array(
       'variables' => array(),
     ),
+    'riff_base_powered_by' => array(
+      'variables' => array(),
+    ),
   );
   if (module_exists('riff_music_content')) {
     $themes['album_node_form'] = array(
@@ -48,6 +51,36 @@ function riff_base_theme($existing, $type, $theme, $path) {
   }
   return $themes;
 }
+
+/**
+ * Implements hook_block_info().
+ */
+function riff_base_block_info() {
+  $blocks['powered-by'] = array(
+    'info' => t('Powered by Drupal'),
+    'weight' => '10',
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ *
+ * Generate a block with a promotional link to Drupal.org and
+ * all system menu blocks.
+ */
+function system_block_view($delta = '') {
+  $block = array();
+  switch ($delta) {
+    case 'powered-by':
+      $block['subject'] = NULL;
+      $block['content'] = theme('riff_base_powered_by');
+      return $block;
+	}
+}
+
+/* Theming and other callbacks */
 
 function riff_base_front() {
 	// Check if we have music content types set up
@@ -114,6 +147,16 @@ function theme_riff_base_front_owner($variables) {
 	$output = '<div class="front-instructions">' . $output . '</div>';
   return $output;
 }
+
+/**
+ * Returns HTML for the Powered by Riff text.
+ *
+ * @ingroup themeable
+ */
+function theme_riff_base_powered_by() {
+  return '<span>' . t('Powered by <a href="@poweredby">Riff</a>', array('@poweredby' => 'http://riffplatform.com')) . '</span>';
+}
+
 
 function riff_base_front_music() {
 	$build = FALSE;
