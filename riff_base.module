@@ -70,7 +70,7 @@ function riff_base_block_info() {
  * Generate a block with a promotional link to Drupal.org and
  * all system menu blocks.
  */
-function system_block_view($delta = '') {
+function riff_base_block_view($delta = '') {
   $block = array();
   switch ($delta) {
     case 'powered-by':
